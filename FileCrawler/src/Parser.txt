@@ -1,0 +1,32 @@
+			var ENEMY_TYPES:int = 2;
+			var ENEMY_DOC:int = 0;
+			var ENEMY_PDF:int = 1;
+			
+			var DOC_NAMES:Array;
+			var PDF_NAMES:Array;
+
+
+				myMapSpec = myMapSpec.substring(myMapSpec.indexOf(' ') + 1);
+				
+
+				
+				for (var swag:int = 0; swag < ENEMY_TYPES; swag++)
+				{
+					var num:int = floor.subdirectories = parseInt(myMapSpec.substring(0, myMapSpec.indexOf(' ')));
+					myMapSpec = myMapSpec.substring(myMapSpec.indexOf(' ') + 1);
+					
+					if (swag == 0)
+						DOC_NAMES = Array(num)
+					else
+						PDF_NAMES = Array(num)
+					
+					for (var count:int = 0; count < num; count++)
+					{
+						if (swag == 0)
+							DOC_NAMES[count] = myMapSpec.substring(0, myMapSpec.indexOf(' '));
+						else
+							PDF_NAMES[count] = myMapSpec.substring(0, myMapSpec.indexOf(' '));
+						myMapSpec = myMapSpec.substring(myMapSpec.indexOf(' ') + 1);
+					}
+				}
+				myMapSpec = myMapSpec.substring(myMapSpec.indexOf('\n') + 1);

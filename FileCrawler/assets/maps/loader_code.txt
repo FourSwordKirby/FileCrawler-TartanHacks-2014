@@ -1,0 +1,17 @@
+import flash.events.Event;
+import flash.net.URLLoader;
+import flash.net.URLRequest;
+
+// Loads string data from file string s
+private function loadLevelFile(s:String):void
+{
+	var loader:URLLoader = new URLLoader(); 
+	loader.addEventListener(Event.COMPLETE, onLevelLoaded); 
+	loader.load(new URLRequest(s)); 
+}
+		  
+private function onLevelLoaded(e:Event):void
+{
+	var levelString:String = new String(e.target.data);
+	// Level data is in levelString
+}
