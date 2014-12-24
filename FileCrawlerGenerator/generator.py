@@ -165,13 +165,13 @@ class Crawler(object):
         return s
 
     def save_map(self):
-        dest = open(self.map_name + EXTENSION, 'w')
+        dest = open(self.map_name + self.EXTENSION, 'w')
         dest.write(self.get_string())
         dest.close()
-        print "Successfully saved to", self.map_name + EXTENSION
+        print "Successfully saved to", self.map_name + self.EXTENSION
 
 
-zipFile = zipfile.ZipFile("AdamAtomic-flixel-8989e50.zip")
+zipFile = zipfile.ZipFile("PoE-Item-Info-v1.7.5-hazydoc-20140312.zip")
 my_zip_list = zipFile.namelist()
 c = Crawler(my_zip_list)
 print c.get_string()
