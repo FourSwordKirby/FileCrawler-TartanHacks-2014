@@ -1,4 +1,4 @@
-package 
+ package 
 {
 	import adobe.utils.CustomActions;
 	import flash.text.engine.ElementFormat;
@@ -8,13 +8,16 @@ package
 	import org.flixel.*;
 	import flash.display.Graphics;
 	import flash.utils.getQualifiedSuperclassName; //used to figure out the super class of some classes
+	
 	public class  OverworldState extends FlxState
 	{
-		FlxG.debug;
-		//********Map building stuff*************************
-		//constants for tile sizes
-		private const TILEWIDTH:uint = 50;
-		private const TILEHEIGHT:uint = 50;
+		//Embed generate graphic tileset to use
+		[Embed(source = '../assets/gfx/wall.png')] private var Tiles:Class;
+		[Embed(source = '../assets/gfx/floor.png')] private var FloorTiles:Class;
+		
+		//******Background Music*****************************
+		//Hyrule Temple
+		[Embed(source = "../assets/music/Overworld.mp3")] private var OverworldBGM:Class;
 		
 		//used to generate a map which determines which tiles to set ***********[maps need to be made]
 		public var spec:String;
@@ -27,16 +30,7 @@ package
 		private var floorParentArray:Array; //stores the names of the parents of each floor
 		private var floorNameArray:Array; //stores the name of each floor
 		
-		private var background:FlxTilemap;
-		//Embed generate graphic tileset to use
-		[Embed(source = '../assets/gfx/wall.png')] private var Tiles:Class;
-		
-		//Embed generate graphic tileset to use
-		[Embed(source = '../assets/gfx/floor.png')] private var FloorTiles:Class;
-		
-		//******Background Music*****************************
-		//Hyrule Temple
-		[Embed(source = "../assets/music/Overworld.mp3")] private var OverworldBGM:Class;
+		//private var background:FlxTilemap;
 		
 		//*****Actual game things****************************
 		private var player:Player ;
@@ -46,26 +40,42 @@ package
 		private var enemyGroup:FlxGroup = new FlxGroup;
 		
 		public var newBattle:BattleState;
-
+		
+		public function OverworldState(spec:String)
+		{
+			this.spec = spec;
+		}
+		
+		FlxG.debug;
 		override public	 function create():void 
-		{	
+		{
 			//****MUSIC AND SFX******************************
 			FlxG.play(OverworldBGM);
 			
 			//**********Mapping shit*************************
-			[Embed(source = '../assets/maps/test.txt', mimeType = 'application/octet-stream')] var floordata:Class;
+			[Embed(source = '../assets/maps/floor.txt', mimeType = 'application/octet-stream')] var floordata:Class;
+			
+			//Gotta figure out a way to display the background tiles in a clean way
+			
+			/*
 			background = new FlxTilemap();
-			background.loadMap(new floordata, FloorTiles, TILEWIDTH, TILEHEIGHT);
+			background.loadMap(new floordata, FloorTiles, Parameters.TILE_WIDTH, Parameters.TILE_HEIGHT);
 			add(background);
+			*/
 			
 			player = new Player(100, 100);
-			generateMaps();	//This function will be used to generate an array of all maps we will use.
+			this.floorArray = generateMaps();	//This function will be used to generate an array of all maps we will use.
 			
-			while ((floor.map.getTile((player.x + TILEWIDTH) / TILEWIDTH, (player.y)/ TILEHEIGHT) != 0))
+			this.floor = this.floorArray[0];
+			
+			add(this.floor.map);
+			add(this.floor.stairGroup);
+			
+			while ((floor.map.getTile((player.x + Parameters.TILE_WIDTH) / Parameters.TILE_WIDTH, (player.y)/ Parameters.TILE_HEIGHT) != 0))
 			{
-				if (player.x+ 900 < floor.map.width)
+				if (player.x+ 800 < floor.map.width)
 				{
-					player.x += 900;
+					player.x += 800;
 				}
 				else
 				{
@@ -86,6 +96,8 @@ package
 			FlxG.camera.width = 800;
 			FlxG.camera.height = 600;
 			FlxG.camera.setBounds(0, 0, floor.map.width, floor.map.height);
+			
+			
 			FlxG.camera.follow(player, FlxCamera.STYLE_TOPDOWN);
 			
 			floortitle = new FlxText(player.x-100, player.y-10, 200, floorArray[0].name)
@@ -95,44 +107,45 @@ package
 		}
 		override public function update():void 
 		{
-			floortitle.text = floorArray[floorArray.indexOf(floor)].name;
+			floortitle.text = floorArray.indexOf(floor).toString();//floorArray[floorArray.indexOf(floor)].name;
 			floortitle.x = player.x;
 			floortitle.y = player.y - 30;
+			
 			//This stuff collides the player with the map, it smooths edges to stop annoying derpy things. 
 			if (FlxG.collide(player, floor.map))
 			{
 				//This smooths a play's maneuverying around square objects if they are colliding on the top when they want to move sideways
-				if ((floor.map.getTile((player.x + player.width) / TILEWIDTH, (player.y) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x + player.width) / TILEWIDTH, (player.y + (2 * player.height / 3)) / TILEHEIGHT) == 0)
-					|| (floor.map.getTile((player.x-1) / TILEWIDTH, (player.y) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x-1) / TILEWIDTH, (player.y + (2 * player.height / 3)) / TILEHEIGHT) == 0)
+				if ((floor.map.getTile((player.x + player.width) / Parameters.TILE_WIDTH, (player.y) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x + player.width) / Parameters.TILE_WIDTH, (player.y + (2 * player.height / 3)) / Parameters.TILE_HEIGHT) == 0)
+					|| (floor.map.getTile((player.x-1) / Parameters.TILE_WIDTH, (player.y) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x-1) / Parameters.TILE_WIDTH, (player.y + (2 * player.height / 3)) / Parameters.TILE_HEIGHT) == 0)
 					)
 					{
 						player.y += 2;
-					}	
+					}
 				//This smooths a play's maneuverying around square objects if they are colliding on the bottom when they want to move sideways
-				if ((floor.map.getTile((player.x + player.width) / TILEWIDTH, (player.y + player.height-1) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x + player.width) / TILEWIDTH, (player.y + (player.height / 3)) / TILEHEIGHT) == 0)
-					|| (floor.map.getTile((player.x-1) / TILEWIDTH, (player.y + player.height-1) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x-1) / TILEWIDTH, (player.y + (player.height / 3)) / TILEHEIGHT) == 0)
+				if ((floor.map.getTile((player.x + player.width) / Parameters.TILE_WIDTH, (player.y + player.height-1) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x + player.width) / Parameters.TILE_WIDTH, (player.y + (player.height / 3)) / Parameters.TILE_HEIGHT) == 0)
+					|| (floor.map.getTile((player.x-1) / Parameters.TILE_WIDTH, (player.y + player.height-1) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x-1) / Parameters.TILE_WIDTH, (player.y + (player.height / 3)) / Parameters.TILE_HEIGHT) == 0)
 					)
 					{
 						player.y -= 2;
 					}
 				//This smooths a play's maneuverying around square objects if they are colliding on the left when they want to move vertically
-				if ((floor.map.getTile((player.x) / TILEWIDTH, (player.y-1) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x + (2*player.width)/3) / TILEWIDTH, (player.y-1) / TILEHEIGHT) == 0)
-					|| (floor.map.getTile((player.x) / TILEWIDTH, (player.y+player.height) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x + (2*player.width)/3) / TILEWIDTH, (player.y+player.height) / TILEHEIGHT) == 0)
+				if ((floor.map.getTile((player.x) / Parameters.TILE_WIDTH, (player.y-1) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x + (2*player.width)/3) / Parameters.TILE_WIDTH, (player.y-1) / Parameters.TILE_HEIGHT) == 0)
+					|| (floor.map.getTile((player.x) / Parameters.TILE_WIDTH, (player.y+player.height) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x + (2*player.width)/3) / Parameters.TILE_WIDTH, (player.y+player.height) / Parameters.TILE_HEIGHT) == 0)
 					)
 					{
 						player.x += 2;
 					}
 				//This smooths a play's maneuverying around square objects if they are colliding on the right when they want to move vertically
-				if ((floor.map.getTile((player.x + player.width-1) / TILEWIDTH, (player.y-1) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x + (player.width)/3) / TILEWIDTH, (player.y-1) / TILEHEIGHT) == 0)
-					|| (floor.map.getTile((player.x + player.width-1) / TILEWIDTH, (player.y+player.height) / TILEHEIGHT) != 0
-					&& floor.map.getTile((player.x + (player.width/3)) / TILEWIDTH, (player.y + player.height) / TILEHEIGHT) == 0)
+				if ((floor.map.getTile((player.x + player.width-1) / Parameters.TILE_WIDTH, (player.y-1) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x + (player.width)/3) / Parameters.TILE_WIDTH, (player.y-1) / Parameters.TILE_HEIGHT) == 0)
+					|| (floor.map.getTile((player.x + player.width-1) / Parameters.TILE_WIDTH, (player.y+player.height) / Parameters.TILE_HEIGHT) != 0
+					&& floor.map.getTile((player.x + (player.width/3)) / Parameters.TILE_WIDTH, (player.y + player.height) / Parameters.TILE_HEIGHT) == 0)
 					)
 					{
 						player.x -= 2;
@@ -141,39 +154,38 @@ package
 			
 			if (FlxG.overlap(player, floor.stairGroup))
 			{
+				
 				var stairTraversed:Stairs = floor.determineStair(player);
-				if (stairTraversed.descend == true)
+				loadMap(stairTraversed.paired_stair.floor);
+				
+				var stair:Stairs = stairTraversed.paired_stair;
+				
+				if (Math.abs(stairTraversed.x - player.x) > Math.abs(stairTraversed.y - player.y))
 				{
-					loadMap(stairTraversed.below);
-					player.x = 100;
-					player.y = 100;
-					for each (var stair:Stairs in floor.stairGroup.members)
-					{
-						if (stair.above == stairTraversed.above)
-						{
-							player.x = stair.x - 100;
-							player.y = stair.y - 100;
-						}
-					}
-					FlxG.camera.setBounds(0, 0, floor.map.width, floor.map.height);
+					if (player.x < stairTraversed.x)
+						player.x = stair.x + 50;
+					else
+						player.x = stair.x - 50;
+					player.y = stair.y;
 				}
-				else // (stairTraversed.descend == false)
+				else
 				{
-					loadMap(stairTraversed.above);
-					player.x = 100;
-					player.y = 100;
-					for each (var stair:Stairs in floor.stairGroup.members)
-					{
-						if (stair.below == stairTraversed.below)
-						{
-							player.x = stair.x - 100;
-							player.y = stair.y - 100;
-						}
-					}
-					FlxG.camera.setBounds(0, 0, floor.map.width, floor.map.height);
+					if (player.y < stairTraversed.y)
+						player.y = stair.y + 50;
+					else
+						player.y = stair.y - 50;
+					player.x = stair.x;
 				}
+				
+				FlxG.camera.setBounds(0, 0, floor.map.width, floor.map.height);
+				
+				FlxG.worldBounds.width = floor.map.width;
+				FlxG.worldBounds.height = floor.map.height;
 			}
 			
+			
+			/*Enemy RPG stuff to do later*/
+			/*
 			if (FlxG.overlap(player, enemyGroup))
 			{
 				var currentEnemy:Enemy = determineEnemy(player);
@@ -182,40 +194,43 @@ package
 				player.y -= 20;
 				//FlxG.switchState(newBattle);
 			}
-			trace(floorNameArray[floorArray.indexOf(floor)]);
+			*/
+			
 			super.update();
 		}
 		
 		
 		//This function will take our spec and generates and array that stores all of our .txt files
 		//These .txt files are the floors of our dungeons.
-		public function generateMaps():void
+		public function generateMaps():Array
 		{
 			var myMapSpec:String = spec;
 			var floornumber:int = parseInt(myMapSpec.substring(0, myMapSpec.indexOf('\n')));//this holds the total number of floors
-			floorArray = new Array(floornumber);												//this holds all of the Floors.
+			var floorArray = new Array(floornumber);		//this holds all of the Floors.
 
 			myMapSpec = myMapSpec.substring(myMapSpec.indexOf('\n') + 1);
 			
 			for (var j:int = 0; j < floornumber; j++)
-			{
-				floor = new Floor();
-				floorArray[j] = floor;
-				
+			{	
 				myMapSpec = myMapSpec.substring(myMapSpec.indexOf(' ') + 1);
+				
 				//this code will get us the floor that precedes each floor if applicable.
-				floor.name = myMapSpec.substring(0, myMapSpec.indexOf(' '));
+				var name:String = myMapSpec.substring(0, myMapSpec.indexOf(' '));
 				myMapSpec = myMapSpec.substring(myMapSpec.indexOf(' ') + 1);
 				
-				floor.parentname= myMapSpec.substring(0, myMapSpec.indexOf(' '));
+				var parentName:String = myMapSpec.substring(0, myMapSpec.indexOf(' '));
 				myMapSpec = myMapSpec.substring(myMapSpec.indexOf(' ') + 1);		
 				
-				floor.files = parseInt(myMapSpec.substring(0, myMapSpec.indexOf(' ')));
+				var fileCount:int = parseInt(myMapSpec.substring(0, myMapSpec.indexOf(' ')));
 				myMapSpec = myMapSpec.substring(myMapSpec.indexOf(' ') + 1);
 				
-				floor.subdirectories = parseInt(myMapSpec.substring(0, myMapSpec.indexOf('\n')));
+				var subdirectoryCount:int = parseInt(myMapSpec.substring(0, myMapSpec.indexOf('\n')));
 				myMapSpec = myMapSpec.substring(myMapSpec.indexOf('\n') + 1);
+				
+				floor = new Floor(name, parentName, fileCount, subdirectoryCount);
+				floorArray[j] = floor;
 			}
+			
 			myMapSpec = myMapSpec.substring(myMapSpec.indexOf(';')+2);
 			
 			for (var i:int = 0; i < floornumber; i++)
@@ -223,7 +238,7 @@ package
 				//this code will get us the actual data about the floor and make it.
 				mapdata = myMapSpec.substring(0, myMapSpec.indexOf('\n\n\n'));
 				map = new FlxTilemap();
-				map.loadMap(mapdata, Tiles, TILEWIDTH, TILEHEIGHT);
+				map.loadMap(mapdata, Tiles, Parameters.TILE_WIDTH, Parameters.TILE_HEIGHT);
 				
 				floorArray[i].map = map;
 				
@@ -231,44 +246,46 @@ package
 			}
 			
 			
-			generateStairs();
-			this.floor = floorArray[0];
-			add(this.floor.map);
-			add(this.floor.stairGroup);
+			generateStairs(floorArray);
+			return floorArray;
 		}
 		
-		public function generateStairs():void
+		public function generateStairs(floorArray:Array):void
 		{
 			for (var i: int = 0; i < floorArray.length; i++)
 			{
-				var a:Floor = floorArray[i]
+				var current_floor:Floor = floorArray[i]
 				for (var j: int = 0; j < i; j++)
 				{
-					var b:Floor = floorArray[j]
-					if (b.parentname == a.name || a.parentname == b.name)
+					var target_floor:Floor = floorArray[j]
+					if (target_floor.parent_name == current_floor.name || current_floor.parent_name == target_floor.name)
 					{
 						var parent:Floor;
 						var child:Floor;
-						if (b.parentname == a.name)
+						if (target_floor.parent_name == current_floor.name)
 						{
-							parent = a;
-							child = b;
+							parent = current_floor;
+							child = target_floor;
 						}
-						else //if (a.parentname == b.name)
+						else
 						{
-							parent = b;
-							child = a;
+							parent = target_floor;
+							child = current_floor;
 						}
 					
 						//This takes care of the descending staircases
 						var stairpoint:FlxPoint = findStairs(parent.map);
-						var stair:Stairs = new Stairs(stairpoint.x, stairpoint.y, true, parent, child);
-						parent.stairGroup.add(stair);
+						var parent_stair:Stairs = new Stairs(stairpoint.x, stairpoint.y, true, parent);
+						parent.stairGroup.add(parent_stair);
 
 						//This takes care of the ascending staircases
 						stairpoint = findStairs(child.map);
-						stair = new Stairs(stairpoint.x, stairpoint.y, false, parent, child);
-						child.stairGroup.add(stair);
+						var child_stair:Stairs = new Stairs(stairpoint.x, stairpoint.y, false, child);
+						child.stairGroup.add(child_stair);
+						
+						//now we pair the stairs with each other
+						parent_stair.paired_stair = child_stair;
+						child_stair.paired_stair = parent_stair;
 					}
 				}
 			}
@@ -325,6 +342,7 @@ package
 			add(floor.map);
 			add(floor.stairGroup);
 		}
+		
 		//This function will look for stais, designated by the tile 2
 		//We know there must be a stair here
 		public function findStairs(floormap:FlxTilemap):FlxPoint
@@ -340,8 +358,11 @@ package
 					}
 				}
 			}
+			trace("cry");
 			return new FlxPoint( -1000, -1000);
 		}
+		
+		
 		public function determineEnemy(player:Player):Enemy
 		{
 			for each (var enemy:Enemy in enemyGroup.members)

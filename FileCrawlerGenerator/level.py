@@ -135,7 +135,7 @@ class Floor(object):
 
 class Room(object):
     ROOM_HEIGHT = 12
-    ROOM_WIDTH = 18
+    ROOM_WIDTH = 16
 
     def __init__(self, h=ROOM_HEIGHT, w=ROOM_WIDTH):
         self.height = h
